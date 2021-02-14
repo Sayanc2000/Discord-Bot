@@ -6,7 +6,7 @@ import  random
 
 client=commands.Bot(command_prefix=">")
 client.remove_command('help')
-await client.change_presence(activity=discord.Activity(type=discord.ActivityType.listening, name=">help"))
+
 
 player1 = ""
 player2 = ""
@@ -51,6 +51,7 @@ def getGif(query):
 
 @client.event
 async def on_ready():
+    await client.change_presence(activity=discord.Activity(type=discord.ActivityType.listening, name=">help"))
     print("I am online")
 
 @client.command()
