@@ -6,6 +6,7 @@ import  random
 
 client=commands.Bot(command_prefix=">")
 client.remove_command('help')
+await client.change_presence(activity=discord.Activity(type=discord.ActivityType.listening, name=">help"))
 
 player1 = ""
 player2 = ""
