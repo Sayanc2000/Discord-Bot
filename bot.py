@@ -123,7 +123,7 @@ def getUrlFromName(q:str):
     return json_data['items'][1]['link']
 
 @client.event
-async def on_ready():
+async def on_ready():  
     await client.change_presence(activity=discord.Activity(type=discord.ActivityType.listening, name=">help"))
     
     print("I am online")
