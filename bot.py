@@ -125,7 +125,7 @@ def getUrlFromName(q:str):
 @client.event
 async def on_ready():
     await client.change_presence(activity=discord.Activity(type=discord.ActivityType.listening, name=">help"))
-    getUrlFromName("falling harry styles")
+    
     print("I am online")
 
 @client.command()
