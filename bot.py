@@ -3,9 +3,64 @@ from discord.ext import commands
 import requests
 import json
 import  random
+import os
+import youtube_dl
+import asyncio
 
 client=commands.Bot(command_prefix=">")
 client.remove_command('help')
+
+
+youtube_dl.utils.bug_reports_message = lambda: ''
+
+ytdl_format_options = {
+    'format': 'bestaudio/best',
+    'outtmpl': '%(extractor)s-%(id)s-%(title)s.%(ext)s',
+    'restrictfilenames': True,
+    'noplaylist': True,
+    'nocheckcertificate': True,
+    'ignoreerrors': False,
+    'logtostderr': False,
+    'quiet': True,
+    'no_warnings': True,
+    'default_search': 'auto',
+    'source_address': '0.0.0.0' # bind to ipv4 since ipv6 addresses cause issues sometimes
+}
+
+ffmpeg_options = {
+    'options': '-vn'
+}
+
+ytdl = youtube_dl.YoutubeDL(ytdl_format_options)
+
+class YTDLSource(discord.PCMVolumeTransformer):
+    def __init__(self, source, *, data, volume=0.5):
+        super().__init__(source, volume)
+
+        self.data = data
+
+        self.title = data.get('title')
+        self.url = data.get('url')
+
+    @classmethod
+    async def from_url(cls, url, *, loop=None, stream=False):
+        loop = loop or asyncio.get_event_loop()
+        data = await loop.run_in_executor(None, lambda: ytdl.extract_info(url, download=not stream))
+
+        if 'entries' in data:
+            # take first item from a playlist
+            data = data['entries'][0]
+
+        filename = data['url'] if stream else ytdl.prepare_filename(data)
+        return cls(discord.FFmpegPCMAudio(filename, **ffmpeg_options), data=data)
+
+
+client = commands.Bot(command_prefix='>')
+
+status = ['Jamming out to music!', 'Eating!', 'Sleeping!']
+queue = []
+
+
 
 
 player1 = ""
@@ -47,11 +102,30 @@ def getGif(query):
     }
     response = requests.get(url=url, params=params)
     json_data = json.loads(response.text)
+    
     return json_data["data"][0]["embed_url"]
+
+def getUrlFromName(q:str):
+    url = "https://youtube-search-results.p.rapidapi.com/youtube-search/"
+
+    headers = {
+    'x-rapidapi-key': "e5452a8f51mshf7160b00b12be80p122bb1jsnecc0964fedbd",
+    'x-rapidapi-host': "youtube-search-results.p.rapidapi.com"
+    }
+    params ={
+        'q':q
+    }
+
+    response = requests.get(url, headers=headers, params=params)    
+    json_data = json.loads(response.text)
+    
+    print(json_data['items'][1]['link'])
+    return json_data['items'][1]['link']
 
 @client.event
 async def on_ready():
     await client.change_presence(activity=discord.Activity(type=discord.ActivityType.listening, name=">help"))
+    getUrlFromName("falling harry styles")
     print("I am online")
 
 @client.command()
@@ -168,7 +242,7 @@ async def place_error(ctx, error):
         await ctx.send("Please make sure to enter an integer.")
 
 
-@client.command(pass_context = True)
+'''@client.command(pass_context = True)
 async def help(ctx):
     author = ctx.message.author
     embed = discord.Embed(
@@ -183,7 +257,7 @@ async def help(ctx):
     embed.add_field(name='>tictactoe <mention1> <mention2>', value='Start a tic tac toe game with 2 people', inline=False)
     embed.add_field(name='>place <number>', value='Place a piece at our turn', inline=False)
 
-    await ctx.send(author, embed=embed)
+    await ctx.send(author, embed=embed)'''
     
 @client.command(name = 'ping', aliases =['p'])
 async def ping(ctx):
@@ -209,9 +283,178 @@ async def sendInsult(ctx, *args):
         insult = getInsult(name)
         await ctx.send(insult)
 
+@client.command(name = "hi")
+async def test(ctx):
+    await ctx.send("Hello")
 
+#music
+
+@client.command(name='join')
+async def join(ctx):
+    if not ctx.message.author.voice:
+        await ctx.send("You are not connected to a voice channel")
+        return
+    
+    else:
+        channel = ctx.message.author.voice.channel
+
+    await channel.connect()
+
+@client.command(name='queue')
+async def queue_(ctx, url):
+    global queue
+    _url = getUrlFromName(url)
+
+    queue.append(_url)
+    await ctx.send(f'`{url}` added to queue!')
+
+@client.command(name='remove')
+async def remove(ctx, number):
+    global queue
+
+    try:
+        del(queue[int(number)])
+        await ctx.send(f'Your queue is now `{queue}!`')
+    
+    except:
+        await ctx.send('Your queue is either **empty** or the index is **out of range**')
+        
+@client.command(name='play')
+async def play(ctx):
+    global queue
+
+    server = ctx.message.guild
+    voice_channel = server.voice_client
+
+    async with ctx.typing():
+        player = await YTDLSource.from_url(queue[0], loop=client.loop)
+        voice_channel.play(player, after=lambda e: print('Player error: %s' % e) if e else None)
+
+    await ctx.send('**Now playing:** {}'.format(player.title))
+    del(queue[0])
+
+
+    
+
+
+@client.command(name='pause')
+async def pause(ctx):
+    server = ctx.message.guild
+    voice_channel = server.voice_client
+
+    voice_channel.pause()
+
+@client.command(name='resume')
+async def resume(ctx):
+    server = ctx.message.guild
+    voice_channel = server.voice_client
+
+    voice_channel.resume()
+
+@client.command(name='view' )
+async def view(ctx):
+    await ctx.send(f'Your queue is now `{queue}!`')
+
+@client.command(name='leave')
+async def leave(ctx):
+    voice_client = ctx.message.guild.voice_client
+    await voice_client.disconnect()
+
+@client.command(name='stop')
+async def stop(ctx):
+    server = ctx.message.guild
+    voice_channel = server.voice_client
+
+    voice_channel.stop()
+
+
+
+
+
+
+
+
+
+
+
+'''@client.command(aliases=["dis"])
+async def disconnect(ctx):
+    channel = ctx.message.author.voice.channel
+    voice = discord.utils.get(ctx.guild.voice_channels, name=channel.name)
+    voice_client = discord.utils.get(client.voice_clients, guild=ctx.guild)
+    if voice_client == None:
+        await ctx.send("Bot is not connected")
+    else:
+        
+        await voice.disconnect()
+
+@client.command()
+async def pause(ctx):
+    channel = ctx.message.author.voice.channel
+    voice = discord.utils.get(ctx.guild.voice_channels, name=channel.name)
+    voice_client = discord.utils.get(client.voice_clients, guild=ctx.guild)
+    if voice_client.is_playing():
+        await voice_client.pause()
+    else:
+        await ctx.send("Nothing is playing")
+
+@client.command()
+async def resume(ctx):
+    channel = ctx.message.author.voice.channel
+    voice = discord.utils.get(ctx.guild.voice_channels, name=channel.name)
+    voice_client = discord.utils.get(client.voice_clients, guild=ctx.guild)
+    if voice_client.is_paused():
+        await voice.resume() 
+    else:
+        await ctx.send("Nothing is pause. Add a new song")
+
+@client.command()
+async def stop(ctx):
+    channel = ctx.message.author.voice.channel
+    voice = discord.utils.get(ctx.guild.voice_channels, name=channel.name)
+    voice_client = discord.utils.get(client.voice_clients, guild=ctx.guild)
+    if voice_client.is_playing():
+        await voice.stop()
+    else:
+        await ctx.send("Nothing is playing")'''
+    
 
 
 client.run('ODEwMTQ2MTQwNDg5NjQ2MDgx.YCfZYw.nJi5KshmC9D308saAFNCFrIoHzU')
 
 #link ="https://discord.com/oauth2/authorize?client_id=810146140489646081&scope=bot"
+
+
+'''@client.command()
+async def play(ctx, url : str):
+    song_there = os.path.isfile("song.mp3")
+    try:
+        if song_there:
+            os.remove("song.mp3")
+        
+            
+    except PermissionError:
+        await  ctx.send("Please wait for song to end or use 'stop' command")
+
+    channel = ctx.message.author.voice.channel
+    voice = discord.utils.get(ctx.guild.voice_channels, name=channel.name)
+    voice_client = discord.utils.get(client.voice_clients, guild=ctx.guild)
+    if voice_client == None:
+        player = await ctx.author.voice.channel.connect()
+    else:
+        await voice_client.move_to(channel)
+
+    ydl_opts = {
+        'format': 'bestaudio/best',
+        'postprocessors': [{
+            'key': 'FFmpegExtractAudio',
+            'preferredcodec': 'mp3',
+            'preferredquality': '192',
+        }],
+    }
+    with youtube_dl.YoutubeDL(ydl_opts) as ydl:
+        ydl.download([url])
+    for file in os.listdir("./"):
+        if file.endswith(".mp3"):
+            os.rename(file, "song.mp3")
+    player.play(discord.FFmpegPCMAudio("song.mp3"))'''
