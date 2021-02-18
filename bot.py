@@ -301,12 +301,13 @@ async def join(ctx):
     await channel.connect()
 
 @client.command(name='queue')
-async def queue_(ctx, url):
+async def queue_(ctx, *url):
     global queue
-    _url = getUrlFromName(url)
+    q = ' '.join(url)
+    _url = getUrlFromName(q)
 
     queue.append(_url)
-    await ctx.send(f'`{url}` added to queue!')
+    await ctx.send(f'`{q}` added to queue!')
 
 @client.command(name='remove')
 async def remove(ctx, number):
