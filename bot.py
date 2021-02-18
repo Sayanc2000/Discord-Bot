@@ -11,6 +11,7 @@ client=commands.Bot(command_prefix=">")
 client.remove_command('help')
 
 
+
 youtube_dl.utils.bug_reports_message = lambda: ''
 
 ytdl_format_options = {
