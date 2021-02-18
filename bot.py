@@ -11,7 +11,6 @@ client=commands.Bot(command_prefix=">")
 client.remove_command('help')
 
 
-
 youtube_dl.utils.bug_reports_message = lambda: ''
 
 ytdl_format_options = {
@@ -305,6 +304,7 @@ async def join(ctx):
 async def queue_(ctx, *url):
     global queue
     q = ' '.join(url)
+    
     _url = getUrlFromName(q)
 
     queue.append(_url)
