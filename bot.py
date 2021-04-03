@@ -109,7 +109,7 @@ def getUrlFromName(q:str):
     url = "https://youtube-search-results.p.rapidapi.com/youtube-search/"
 
     headers = {
-    'x-rapidapi-key': "e5452a8f51mshf7160b00b12be80p122bb1jsnecc0964fedbd",
+    'x-rapidapi-key': "Api Key from rapid Api",
     'x-rapidapi-host': "youtube-search-results.p.rapidapi.com"
     }
     params ={
