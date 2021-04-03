@@ -119,7 +119,7 @@ def getUrlFromName(q:str):
     response = requests.get(url, headers=headers, params=params)    
     json_data = json.loads(response.text)
     
-    print(json_data['items'][1]['link'])
+    
     return json_data['items'][1]['link']
 
 @client.event
@@ -242,22 +242,7 @@ async def place_error(ctx, error):
         await ctx.send("Please make sure to enter an integer.")
 
 
-'''@client.command(pass_context = True)
-async def help(ctx):
-    author = ctx.message.author
-    embed = discord.Embed(
-        colour= discord.Colour.orange()
-    )
 
-    embed.set_author(name = "Help")
-    embed.add_field(name=">ping", value="Sends ping of the user", inline=False)
-    embed.add_field(name=">quote", value="Sends a random motivational quote", inline=False)
-    embed.add_field(name=">gif <query>", value="Sends a gif related to query", inline=False)
-    embed.add_field(name="insult <name>",  value="Insults with name", inline= False)
-    embed.add_field(name='>tictactoe <mention1> <mention2>', value='Start a tic tac toe game with 2 people', inline=False)
-    embed.add_field(name='>place <number>', value='Place a piece at our turn', inline=False)
-
-    await ctx.send(author, embed=embed)'''
     
 @client.command(name = 'ping', aliases =['p'])
 async def ping(ctx):
@@ -379,84 +364,11 @@ async def stop(ctx):
 
 
 
-'''@client.command(aliases=["dis"])
-async def disconnect(ctx):
-    channel = ctx.message.author.voice.channel
-    voice = discord.utils.get(ctx.guild.voice_channels, name=channel.name)
-    voice_client = discord.utils.get(client.voice_clients, guild=ctx.guild)
-    if voice_client == None:
-        await ctx.send("Bot is not connected")
-    else:
-        
-        await voice.disconnect()
 
-@client.command()
-async def pause(ctx):
-    channel = ctx.message.author.voice.channel
-    voice = discord.utils.get(ctx.guild.voice_channels, name=channel.name)
-    voice_client = discord.utils.get(client.voice_clients, guild=ctx.guild)
-    if voice_client.is_playing():
-        await voice_client.pause()
-    else:
-        await ctx.send("Nothing is playing")
-
-@client.command()
-async def resume(ctx):
-    channel = ctx.message.author.voice.channel
-    voice = discord.utils.get(ctx.guild.voice_channels, name=channel.name)
-    voice_client = discord.utils.get(client.voice_clients, guild=ctx.guild)
-    if voice_client.is_paused():
-        await voice.resume() 
-    else:
-        await ctx.send("Nothing is pause. Add a new song")
-
-@client.command()
-async def stop(ctx):
-    channel = ctx.message.author.voice.channel
-    voice = discord.utils.get(ctx.guild.voice_channels, name=channel.name)
-    voice_client = discord.utils.get(client.voice_clients, guild=ctx.guild)
-    if voice_client.is_playing():
-        await voice.stop()
-    else:
-        await ctx.send("Nothing is playing")'''
     
 
 
-client.run('ODEwMTQ2MTQwNDg5NjQ2MDgx.YCfZYw.nJi5KshmC9D308saAFNCFrIoHzU')
+client.run('Your Bot Client Id')
 
 #link ="https://discord.com/oauth2/authorize?client_id=810146140489646081&scope=bot"
 
-
-'''@client.command()
-async def play(ctx, url : str):
-    song_there = os.path.isfile("song.mp3")
-    try:
-        if song_there:
-            os.remove("song.mp3")
-        
-            
-    except PermissionError:
-        await  ctx.send("Please wait for song to end or use 'stop' command")
-
-    channel = ctx.message.author.voice.channel
-    voice = discord.utils.get(ctx.guild.voice_channels, name=channel.name)
-    voice_client = discord.utils.get(client.voice_clients, guild=ctx.guild)
-    if voice_client == None:
-        player = await ctx.author.voice.channel.connect()
-    else:
-        await voice_client.move_to(channel)
-
-    ydl_opts = {
-        'format': 'bestaudio/best',
-        'postprocessors': [{
-            'key': 'FFmpegExtractAudio',
-            'preferredcodec': 'mp3',
-            'preferredquality': '192',
-        }],
-    }
-    with youtube_dl.YoutubeDL(ydl_opts) as ydl:
-        ydl.download([url])
-    for file in os.listdir("./"):
-        if file.endswith(".mp3"):
-            os.rename(file, "song.mp3")
-    player.play(discord.FFmpegPCMAudio("song.mp3"))'''
